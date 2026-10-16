@@ -1,0 +1,23 @@
+{
+  "name": "dayflow",
+  "version": "1.0.0",
+  "description": "A minimal, responsive daily planner with progress analytics, browser notifications, and focus timers.",
+  "main": "index.html",
+  "scripts": {
+    "start": "python server.py"
+  },
+  "keywords": [
+    "todo",
+    "productivity",
+    "habit-tracker",
+    "pomodoro",
+    "eisenhower-matrix",
+    "web-notifications"
+  ],
+  "author": "Koteswara Rao",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/koteswararao200620-ai/Todolist.git"
+  }
+}

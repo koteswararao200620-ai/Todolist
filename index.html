@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dayflow — Daily Task & Habit Tracker</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-light">
+  <div class="app-layout">
+    <!-- Navigation Bar -->
+    <header class="navbar">
+      <div class="nav-left">
+        <div class="brand">
+          <div class="brand-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+          </div>
+          <span class="brand-name">Dayflow</span>
+        </div>
+
+        <nav class="nav-views" aria-label="Views">
+          <button id="viewListBtn" class="nav-pill active">
+            <span>List</span>
+          </button>
+          <button id="viewMatrixBtn" class="nav-pill">
+            <span>Priority Matrix</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="nav-right">
+        <div class="nav-time-block">
+          <span id="liveClock" class="nav-clock">00:00:00</span>
+          <span id="liveDate" class="nav-date">Today</span>
+        </div>
+
+        <div class="nav-actions">
+          <button id="insightsModalBtn" class="btn btn-subtle btn-sm" title="Daily Insights & Recommendations">
+            <span>Insights</span>
+          </button>
+
+          <button id="notifyPermissionBtn" class="btn btn-subtle btn-sm" title="Configure Desktop Notifications">
+            <span class="bell-icon">🔔</span>
+            <span id="notifyBtnText">Notifications</span>
+          </button>
+
+          <button id="shortcutsBtn" class="btn btn-icon btn-sm" title="Keyboard Shortcuts (?)" aria-label="Keyboard Shortcuts">
+            <span>⌨</span>
+          </button>
+
+          <button id="exportDataBtn" class="btn btn-icon btn-sm" title="Export Backup" aria-label="Export Data">
+            <span>⭳</span>
+          </button>
+
+          <button id="themeToggleBtn" class="btn btn-icon btn-sm" title="Toggle theme (T)" aria-label="Toggle theme">
+            <span id="themeIcon">🌙</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Notification Permission Banner -->
+    <div id="notificationBanner" class="banner hidden">
+      <div class="banner-body">
+        <span class="banner-icon">🔔</span>
+        <div class="banner-copy">
+          <span class="banner-title" id="bannerTitle">Enable desktop reminders</span>
+          <span class="banner-desc" id="bannerDesc">Get scheduled alerts for time-sensitive tasks and daily completion updates.</span>
+        </div>
+      </div>
+      <div class="banner-actions">
+        <button id="enableNotificationBannerBtn" class="btn btn-primary btn-xs">Allow</button>
+        <button id="dismissBannerBtn" class="btn btn-ghost btn-xs">Dismiss</button>
+      </div>
+    </div>
+
+    <!-- Quick Add Input Bar -->
+    <section class="quick-add-section">
+      <div class="quick-add-box">
+        <span class="quick-add-icon">＋</span>
+        <input type="text" id="quickTaskInput" placeholder="Quick add: type task name, or try 'Workout at 7am everyday high' (Press '/' to focus)" autocomplete="off">
+        <kbd class="kbd-hint">/</kbd>
+        <button id="quickTaskSubmitBtn" class="btn btn-primary btn-sm">Add Task</button>
+      </div>
+      <div class="quick-templates">
+        <span class="templates-label">Quick habits:</span>
+        <button class="template-chip" data-text="Morning workout at 07:00 AM everyday high">🏃 Workout (7:00 AM)</button>
+        <button class="template-chip" data-text="Inbox zero & daily planning at 09:30 AM everyday">📬 Inbox zero (9:30 AM)</button>
+        <button class="template-chip" data-text="Read 20 pages of book at 08:30 PM everyday">📚 Read 20 pages (8:30 PM)</button>
+        <button class="template-chip" data-text="Drink 2.5L water throughout day everyday">💧 Drink water</button>
+      </div>
+    </section>
+
+    <!-- Main Workspace Grid -->
+    <main class="workspace-grid">
+      <!-- Sidebar / Insights Column -->
+      <aside class="workspace-sidebar">
+        <!-- Progress Summary Widget -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Daily Progress</h2>
+              <p class="panel-desc">Completion tracking for today</p>
+            </div>
+            <div id="streakBadge" class="streak-pill" title="Daily productive streak">
+              🔥 <span id="streakCount">1</span>d streak
+            </div>
+          </div>
+
+          <div class="radial-hero">
+            <div class="radial-wrap">
+              <svg class="radial-svg" width="140" height="140" viewBox="0 0 140 140">
+                <circle class="radial-track" cx="70" cy="70" r="58"></circle>
+                <circle id="radialProgressCircle" class="radial-meter" cx="70" cy="70" r="58"></circle>
+              </svg>
+              <div class="radial-content">
+                <span id="progressPercentage" class="radial-number">0%</span>
+                <span class="radial-sub">done</span>
+              </div>
+            </div>
+
+            <div class="summary-numbers">
+              <div class="num-stat">
+                <span id="statCompletedCount" class="num-val completed">0</span>
+                <span class="num-lbl">Completed</span>
+              </div>
+              <div class="num-sep">/</div>
+              <div class="num-stat">
+                <span id="statTotalCount" class="num-val">0</span>
+                <span class="num-lbl">Total Tasks</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Status Cue -->
+          <div id="progressMessage" class="status-banner info">
+            Add your tasks for today or knock out your first goal!
+          </div>
+
+          <!-- Linear Meter -->
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-labels">
+              <span>Overall completion</span>
+              <span id="linearPercentText">0%</span>
+            </div>
+            <div class="progress-bar-rail">
+              <div id="linearProgressBar" class="progress-bar-thumb" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Focus Timer Widget -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Focus Session</h2>
+              <p class="panel-desc">Pomodoro focus timer with desktop alerts</p>
+            </div>
+            <span id="pomodoroModeBadge" class="pill pill-focus">FOCUS</span>
+          </div>
+
+          <div class="timer-box">
+            <div id="pomodoroTimer" class="timer-digits">25:00</div>
+            <p id="pomodoroTaskLabel" class="timer-task-caption">Select any task to link timer</p>
+          </div>
+
+          <div class="timer-actions">
+            <button id="pomodoroStartBtn" class="btn btn-primary btn-sm">Start (F)</button>
+            <button id="pomodoroPauseBtn" class="btn btn-secondary btn-sm hidden">Pause</button>
+            <button id="pomodoroResetBtn" class="btn btn-ghost btn-sm">Reset</button>
+            <button id="pomodoroModeToggleBtn" class="btn btn-outline btn-sm">Break</button>
+          </div>
+        </div>
+
+        <!-- Task Stats Grid -->
+        <div class="panel">
+          <h3 class="panel-label">Distribution</h3>
+          <div class="stats-mini-grid">
+            <div class="stat-mini-card">
+              <span class="dot dot-high"></span>
+              <span class="stat-mini-name">High</span>
+              <span id="countHighPriority" class="stat-mini-count">0</span>
+            </div>
+            <div class="stat-mini-card">
+              <span class="dot dot-med"></span>
+              <span class="stat-mini-name">Medium</span>
+              <span id="countMedPriority" class="stat-mini-count">0</span>
+            </div>
+            <div class="stat-mini-card">
+              <span class="dot dot-low"></span>
+              <span class="stat-mini-name">Low</span>
+              <span id="countLowPriority" class="stat-mini-count">0</span>
+            </div>
+            <div class="stat-mini-card">
+              <span class="dot dot-routine"></span>
+              <span class="stat-mini-name">Everyday</span>
+              <span id="countRecurring" class="stat-mini-count">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notification Preferences -->
+        <div class="panel">
+          <h3 class="panel-label">Reminders & Sound</h3>
+          <div class="setting-list">
+            <div class="setting-item">
+              <div>
+                <span class="setting-name">Task Reminders</span>
+                <span class="setting-hint">Notify when scheduled time arrives</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleDueReminders" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div>
+                <span class="setting-name">Hourly Progress</span>
+                <span class="setting-hint">Progress summary nudges</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleHourlyNudge" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div>
+                <span class="setting-name">Audio Chime</span>
+                <span class="setting-hint">Gentle tone on notifications</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleSound" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting-actions">
+            <button id="sendTestNotificationBtn" class="btn btn-secondary btn-sm btn-block">Test Notification</button>
+            <button id="sendProgressAlertBtn" class="btn btn-subtle btn-sm btn-block">Send Progress Summary</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Tasks Content -->
+      <section class="workspace-main">
+        <!-- Filter & Search Toolbar -->
+        <div class="toolbar panel">
+          <div class="toolbar-search-row">
+            <div class="search-field">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="taskSearchInput" placeholder="Filter tasks by name or category..." autocomplete="off">
+              <button id="clearSearchBtn" class="btn-clear hidden" aria-label="Clear search">✕</button>
+            </div>
+            <button id="openAddTaskModalBtn" class="btn btn-primary">
+              <span>+ New Task</span>
+              <kbd class="kbd-btn">N</kbd>
+            </button>
+          </div>
+
+          <div class="toolbar-filter-row">
+            <div class="filter-pills" role="tablist">
+              <button class="filter-pill active" data-filter="all">All (<span id="filterAllCount">0</span>)</button>
+              <button class="filter-pill" data-filter="active">Active (<span id="filterActiveCount">0</span>)</button>
+              <button class="filter-pill" data-filter="completed">Completed (<span id="filterCompletedCount">0</span>)</button>
+              <button class="filter-pill" data-filter="recurring">Everyday (<span id="filterRecurringCount">0</span>)</button>
+            </div>
+
+            <div class="filter-selects">
+              <select id="categoryFilter" class="custom-select" aria-label="Category filter">
+                <option value="all">All Categories</option>
+                <option value="Work">Work</option>
+                <option value="Personal">Personal</option>
+                <option value="Health">Health</option>
+                <option value="Study">Study</option>
+                <option value="Routine">Routine</option>
+              </select>
+
+              <select id="priorityFilter" class="custom-select" aria-label="Priority filter">
+                <option value="all">All Priorities</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Task List View -->
+        <div id="listViewContainer" class="tasks-area">
+          <div class="tasks-heading-row">
+            <h2 class="tasks-heading">Tasks</h2>
+            <div class="bulk-actions">
+              <button id="markAllCompleteBtn" class="btn-link">Mark all done</button>
+              <span class="divider">/</span>
+              <button id="clearCompletedBtn" class="btn-link text-muted">Clear completed</button>
+            </div>
+          </div>
+
+          <div id="taskList" class="task-deck">
+            <!-- Dynamically populated task cards -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyState" class="empty-deck hidden">
+            <div class="empty-deck-icon">📋</div>
+            <h3 class="empty-deck-title">No tasks found</h3>
+            <p class="empty-deck-text">No tasks match your current filters. Add a new everyday task to get rolling.</p>
+            <button id="emptyStateAddBtn" class="btn btn-primary btn-sm">+ Add Task</button>
+          </div>
+        </div>
+
+        <!-- Priority Matrix View (Eisenhower) -->
+        <div id="matrixViewContainer" class="matrix-area hidden">
+          <div class="matrix-layout">
+            <div class="matrix-card q1">
+              <div class="matrix-card-header">
+                <div>
+                  <span class="matrix-tag q1">Do First</span>
+                  <h3 class="matrix-title">Urgent & Important</h3>
+                </div>
+                <span id="countQ1" class="matrix-count">0</span>
+              </div>
+              <div id="matrixListQ1" class="matrix-items"></div>
+            </div>
+
+            <div class="matrix-card q2">
+              <div class="matrix-card-header">
+                <div>
+                  <span class="matrix-tag q2">Schedule</span>
+                  <h3 class="matrix-title">Important & Everyday Habits</h3>
+                </div>
+                <span id="countQ2" class="matrix-count">0</span>
+              </div>
+              <div id="matrixListQ2" class="matrix-items"></div>
+            </div>
+
+            <div class="matrix-card q3">
+              <div class="matrix-card-header">
+                <div>
+                  <span class="matrix-tag q3">Delegate / Quick</span>
+                  <h3 class="matrix-title">Urgent, Low Impact</h3>
+                </div>
+                <span id="countQ3" class="matrix-count">0</span>
+              </div>
+              <div id="matrixListQ3" class="matrix-items"></div>
+            </div>
+
+            <div class="matrix-card q4">
+              <div class="matrix-card-header">
+                <div>
+                  <span class="matrix-tag q4">Eliminate</span>
+                  <h3 class="matrix-title">Low Priority</h3>
+                </div>
+                <span id="countQ4" class="matrix-count">0</span>
+              </div>
+              <div id="matrixListQ4" class="matrix-items"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7-Day Performance Chart -->
+        <div class="panel history-panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">7-Day Consistency</h2>
+              <p class="panel-desc">Completion percentages across the past week</p>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-dot green"></span> 80%+
+              <span class="legend-dot yellow"></span> 50-79%
+              <span class="legend-dot red"></span> &lt;50%
+            </div>
+          </div>
+          <div id="weeklyChart" class="history-chart"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Add/Edit Task Modal -->
+  <div id="taskModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-dialog">
+      <div class="modal-dialog-header">
+        <h2 id="modalTitle" class="modal-dialog-title">New Task</h2>
+        <button id="closeModalBtn" class="btn-icon btn-sm" aria-label="Close dialog">✕</button>
+      </div>
+
+      <form id="taskForm" class="modal-dialog-form">
+        <input type="hidden" id="editTaskId" value="">
+
+        <div class="field">
+          <label for="taskTitleInput" class="field-label">Title <span class="req">*</span></label>
+          <input type="text" id="taskTitleInput" class="field-input" placeholder="e.g. Read 20 pages, Cardio workout" required autofocus>
+        </div>
+
+        <div class="field">
+          <label for="taskDescInput" class="field-label">Notes (Optional)</label>
+          <textarea id="taskDescInput" class="field-textarea" rows="2" placeholder="Helpful details, links, or context..."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field col">
+            <label for="taskCategorySelect" class="field-label">Category</label>
+            <select id="taskCategorySelect" class="field-select">
+              <option value="Work">Work</option>
+              <option value="Personal">Personal</option>
+              <option value="Health">Health</option>
+              <option value="Study">Study</option>
+              <option value="Routine">Routine</option>
+            </select>
+          </div>
+
+          <div class="field col">
+            <label for="taskPrioritySelect" class="field-label">Priority</label>
+            <select id="taskPrioritySelect" class="field-select">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field col">
+            <label for="taskTimeInput" class="field-label">Scheduled Time</label>
+            <input type="time" id="taskTimeInput" class="field-input">
+          </div>
+
+          <div class="field col field-align-bottom">
+            <label class="checkbox-label">
+              <input type="checkbox" id="taskRecurringInput" checked>
+              <span class="checkbox-box"></span>
+              <span class="checkbox-desc">
+                <strong>Everyday Task</strong>
+                <small>Auto-resets each morning</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Subtask Checklist -->
+        <div class="field">
+          <label class="field-label">Checklist Items</label>
+          <div id="subtaskInputsContainer" class="subtask-field-list"></div>
+          <button type="button" id="btnAddSubtaskField" class="btn btn-subtle btn-xs btn-add-sub">
+            + Add checklist item
+          </button>
+        </div>
+
+        <div class="modal-dialog-footer">
+          <button type="button" id="cancelModalBtn" class="btn btn-secondary btn-sm">Cancel</button>
+          <button type="submit" id="saveTaskBtn" class="btn btn-primary btn-sm">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Insights & Routine Templates Modal -->
+  <div id="aiCoachModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="insightsTitle">
+    <div class="modal-dialog modal-wide">
+      <div class="modal-dialog-header">
+        <div>
+          <span class="badge-subtle">Productivity Analytics</span>
+          <h2 id="insightsTitle" class="modal-dialog-title">Daily Focus & Insights</h2>
+        </div>
+        <button id="closeAiCoachBtn" class="btn-icon btn-sm" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-dialog-body">
+        <div class="briefing-box">
+          <div class="briefing-header">
+            <span class="briefing-icon">💡</span>
+            <div>
+              <h3 class="briefing-title">Today's Focus Assessment</h3>
+              <p id="aiBriefingTimestamp" class="briefing-timestamp">Evaluated from your current progress</p>
+            </div>
+            <button id="refreshAiBriefingBtn" class="btn btn-subtle btn-xs">Refresh</button>
+          </div>
+          <div id="aiBriefingContent" class="briefing-content">
+            Evaluating daily completion rate and task priorities...
+          </div>
+        </div>
+
+        <div class="templates-section">
+          <h4 class="templates-title">One-Click Everyday Habit Routines</h4>
+          <p class="templates-desc">Load a curated set of daily routines to jumpstart your day:</p>
+          <div class="templates-grid">
+            <button class="template-card" data-preset="developer">
+              <span class="template-card-icon">💻</span>
+              <strong>Software Engineer</strong>
+              <small>PR reviews, deep coding block, system design study</small>
+            </button>
+            <button class="template-card" data-preset="student">
+              <span class="template-card-icon">📚</span>
+              <strong>Student & Learner</strong>
+              <small>Spaced repetition, problem sets, assignment reviews</small>
+            </button>
+            <button class="template-card" data-preset="fitness">
+              <span class="template-card-icon">🏃</span>
+              <strong>Health & Wellness</strong>
+              <small>Morning cardio, hydration checkpoints, evening stretch</small>
+            </button>
+            <button class="template-card" data-preset="productivity">
+              <span class="template-card-icon">⚡</span>
+              <strong>High Focus</strong>
+              <small>Top 3 priority triage, 90-min deep block, reflection</small>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-dialog-footer">
+        <button id="dismissAiCoachBtn" class="btn btn-secondary btn-sm">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcutsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+    <div class="modal-dialog modal-narrow">
+      <div class="modal-dialog-header">
+        <h2 id="shortcutsTitle" class="modal-dialog-title">Keyboard Shortcuts</h2>
+        <button id="closeShortcutsBtn" class="btn-icon btn-sm" aria-label="Close dialog">✕</button>
+      </div>
+      <div class="shortcuts-body">
+        <div class="shortcut-row">
+          <span>New Task</span>
+          <kbd>N</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span>Focus Quick Add / Search</span>
+          <kbd>/</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span>Toggle Focus Timer</span>
+          <kbd>F</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span>Toggle Dark / Light Theme</span>
+          <kbd>T</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span>Close Open Dialog</span>
+          <kbd>Esc</kbd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Backup Modal -->
+  <div id="exportModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+    <div class="modal-dialog modal-narrow">
+      <div class="modal-dialog-header">
+        <h2 id="exportTitle" class="modal-dialog-title">Backup & Export</h2>
+        <button id="closeExportBtn" class="btn-icon btn-sm" aria-label="Close dialog">✕</button>
+      </div>
+      <div class="export-body">
+        <p class="export-text">Export your tasks, history, and streak metrics for offline backup or spreadsheets.</p>
+        <div class="export-buttons">
+          <button id="downloadJsonBtn" class="btn btn-primary btn-sm btn-block">Download JSON Backup</button>
+          <button id="downloadCsvBtn" class="btn btn-secondary btn-sm btn-block">Export CSV Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Deck -->
+  <div id="toastContainer" class="toast-deck" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
